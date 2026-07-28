@@ -1,6 +1,5 @@
 {
     "name": "chani/safi-i18n",
-    "version": "0.1.0",
     "description": "Fast, secure-by-design JSON & Source-Key i18n extension with OPcache compilation for Safi Microframework.",
     "type": "library",
     "license": "MIT",
