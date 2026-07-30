@@ -16,7 +16,7 @@ use UnitEnum;
 
 final class Translator
 {
-    private static ?Translator $globalInstance = null;
+    private static ?Translator $globalInstance;
 
     /** @var array<string, array<string, string>> */
     private array $loadedTranslations = [];
@@ -30,7 +30,7 @@ final class Translator
         self::$globalInstance = $this;
     }
 
-    public static function setGlobalInstance(Translator $translator): void
+    public static function setGlobalInstance(?Translator $translator): void
     {
         self::$globalInstance = $translator;
     }
@@ -108,11 +108,13 @@ final class Translator
         foreach ($activeComponents as $comp) {
             $compFile = "{$this->langDir}/components/{$comp}/{$this->currentLocale}.json";
             if (file_exists($compFile)) {
-                $content = file_get_contents($compFile);
-                if ($content !== false) {
-                    /** @var array<string, string> $decoded */
-                    $decoded = json_decode($content, true) ?? [];
-                    $slice = array_merge($slice, $decoded);
+                $rawContent = file_get_contents($compFile);
+                if ($rawContent !== false) {
+                    $decoded = json_decode($rawContent, true);
+                    if (is_array($decoded)) {
+                        /** @var array<string, string> $decoded */
+                        $slice = array_merge($slice, $decoded);
+                    }
                 }
             }
         }
@@ -159,6 +161,11 @@ final class Translator
         }
     }
 
+    /**
+     * Interpolates placeholders using named arguments or array syntax.
+     *
+     * @param array<string, mixed> $replacements
+     */
     private function interpolate(string $message, array $replacements): string
     {
         $map = [];
