@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace {
 
-    use Psr\Container\ContainerInterface;
     use Safi\Extensions\I18n\Translator;
 
     if (!function_exists('__')) {
@@ -20,8 +19,6 @@ namespace {
          */
         function __(string|\UnitEnum $key, mixed ...$replacements): string
         {
-            global $safiContainer;
-
             $realKey = $key instanceof \UnitEnum
                 ? ($key instanceof \BackedEnum ? (string) $key->value : $key->name)
                 : $key;
@@ -31,10 +28,8 @@ namespace {
                 ? $replacements[0]
                 : $replacements;
 
-            if (isset($safiContainer) && $safiContainer instanceof ContainerInterface && $safiContainer->has(Translator::class)) {
-                /** @var Translator $translator */
-                $translator = $safiContainer->get(Translator::class);
-
+            $translator = Translator::getGlobalInstance();
+            if ($translator instanceof Translator) {
                 return $translator->translate($realKey, $args);
             }
 

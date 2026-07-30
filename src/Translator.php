@@ -16,6 +16,8 @@ use UnitEnum;
 
 final class Translator
 {
+    private static ?Translator $globalInstance = null;
+
     /** @var array<string, array<string, string>> */
     private array $loadedTranslations = [];
 
@@ -25,6 +27,17 @@ final class Translator
         private readonly bool $debug = false,
     ) {
         $this->loadLocale($this->currentLocale);
+        self::$globalInstance = $this;
+    }
+
+    public static function setGlobalInstance(Translator $translator): void
+    {
+        self::$globalInstance = $translator;
+    }
+
+    public static function getGlobalInstance(): ?Translator
+    {
+        return self::$globalInstance;
     }
 
     public function setLocale(string $locale): void
@@ -68,7 +81,6 @@ final class Translator
         /** @var array<string, string> $slice */
         $slice = [];
 
-        // 1. Core Public Translations
         $publicFile = "{$this->langDir}/{$this->currentLocale}.public.json";
         if (file_exists($publicFile)) {
             $content = file_get_contents($publicFile);
@@ -83,7 +95,6 @@ final class Translator
             return json_encode($slice, JSON_THROW_ON_ERROR);
         }
 
-        // 2. Core Private
         $privateFile = "{$this->langDir}/{$this->currentLocale}.json";
         if (file_exists($privateFile)) {
             $content = file_get_contents($privateFile);
@@ -94,7 +105,6 @@ final class Translator
             }
         }
 
-        // 3. Active Components
         foreach ($activeComponents as $comp) {
             $compFile = "{$this->langDir}/components/{$comp}/{$this->currentLocale}.json";
             if (file_exists($compFile)) {
@@ -123,7 +133,6 @@ final class Translator
     {
         $cacheFile = "{$this->langDir}/.cache_{$locale}.php";
 
-        // Production OPcache compilation fallback
         if (!$this->debug && file_exists($cacheFile)) {
             /** @var array<string, array<string, string>> $cached */
             $cached = require $cacheFile;
@@ -150,12 +159,6 @@ final class Translator
         }
     }
 
-    /**
-     * Interpolates placeholders using named arguments or array syntax.
-     * e.g., "Hello {name}" or "Hello %name%"
-     *
-     * @param array<string, mixed> $replacements
-     */
     private function interpolate(string $message, array $replacements): string
     {
         $map = [];
