@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Safi Microframework - safi-i18n
- * @author Jean Bruenn
- * @copyright 2026 All Rights Reserved
- * @see https://github.com/chani/safi-i18n
- */
-
 declare(strict_types=1);
 
 namespace Safi\Extensions\I18n;
@@ -44,22 +37,15 @@ final class I18nServiceProvider implements ServiceProviderInterface
         if ($container->has(ViewEngineInterface::class)) {
             $view = $container->get(ViewEngineInterface::class);
             if ($view instanceof TwigViewAdapter) {
-                /** @var Translator $translator */
                 $translator = $container->get(Translator::class);
-
-                $reflection = new \ReflectionClass($view);
-                if ($reflection->hasProperty('twig')) {
-                    $prop = $reflection->getProperty('twig');
-                    /** @var \Twig\Environment $twigEnvironment */
-                    $twigEnvironment = $prop->getValue($view);
-                    $twigEnvironment->addExtension(new I18nTwigExtension($translator));
-                }
+                assert($translator instanceof Translator);
+                $view->addExtension(new I18nTwigExtension($translator));
             }
         }
 
         if ($container->has(CommandKernel::class)) {
-            /** @var CommandKernel $kernel */
             $kernel = $container->get(CommandKernel::class);
+            assert($kernel instanceof CommandKernel);
             $kernel->registerCommand(new I18nExtractCommand(
                 projectRoot: dirname($this->langDir),
                 langDir: $this->langDir,
